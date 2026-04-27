@@ -226,5 +226,4 @@ Built as a modern healthcare experience prototype combining **design + functiona
 
 Give it a star and share your feedback — it helps improve and evolve the platform!
 
----
-e.
+
