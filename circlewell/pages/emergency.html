@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Emergency Access — CircleWell</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.emergency-banner{background:linear-gradient(135deg,rgba(248,113,113,0.15),rgba(248,113,113,0.05));border:1px solid rgba(248,113,113,0.3);border-radius:var(--radius2);padding:28px 32px;margin-bottom:28px;display:flex;align-items:center;gap:20px;}
+.sos-icon{font-size:48px;flex-shrink:0;animation:pulse-red 1.5s infinite;}
+@keyframes pulse-red{0%,100%{opacity:1}50%{opacity:0.6}}
+.id-card{background:linear-gradient(135deg,var(--navy3),var(--navy4));border:1px solid rgba(248,113,113,0.2);border-radius:var(--radius2);padding:32px;position:relative;overflow:hidden;}
+.id-card::before{content:'CircleWell';position:absolute;right:-20px;top:50%;transform:translateY(-50%) rotate(90deg);font-family:'Fraunces',serif;font-size:80px;font-weight:700;opacity:0.03;color:var(--red);}
+.id-row{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;}
+.id-field{margin-bottom:16px;}
+.id-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+.id-val{font-size:16px;font-weight:500;color:var(--text);}
+.id-val.large{font-family:'Fraunces',serif;font-size:28px;color:var(--red);}
+.share-token-box{background:var(--navy3);border:1px solid rgba(248,113,113,0.2);border-radius:12px;padding:16px 20px;font-family:monospace;font-size:15px;letter-spacing:2px;color:var(--red);display:flex;align-items:center;justify-content:space-between;gap:12px;word-break:break-all;}
+.contacts-list{display:flex;flex-direction:column;gap:12px;}
+.contact-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.contact-info{display:flex;align-items:center;gap:14px;}
+.c-avatar{width:42px;height:42px;border-radius:50%;background:rgba(248,113,113,0.15);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;color:var(--red);flex-shrink:0;}
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div id="sidebar-mount"></div>
+  <main class="main">
+    <div class="page-header">
+      <h1>Emergency Access</h1>
+      <p>Critical medical information for emergencies. Always accessible.</p>
+    </div>
+
+    <!-- SOS Banner -->
+    <div class="emergency-banner">
+      <div class="sos-icon">🚨</div>
+      <div>
+        <div style="font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:var(--red);margin-bottom:6px;">Emergency? Call immediately.</div>
+        <div style="font-size:14px;color:var(--muted);margin-bottom:16px;">This page can be shared with first responders without requiring login.</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+          <a href="tel:112" class="btn btn-sm" style="background:var(--red);color:white;font-weight:700;">📞 Call 112</a>
+          <a href="tel:102" class="btn btn-sm" style="background:rgba(248,113,113,0.2);color:var(--red);border:1px solid rgba(248,113,113,0.3);">🚑 Ambulance 102</a>
+          <a href="tel:108" class="btn btn-sm" style="background:rgba(248,113,113,0.2);color:var(--red);border:1px solid rgba(248,113,113,0.3);">🏥 AIIMS 108</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:28px;">
+      <!-- Medical ID Card -->
+      <div class="id-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+          <div style="font-family:'Fraunces',serif;font-size:16px;color:var(--red);">Medical ID Card</div>
+          <span class="badge badge-red">Emergency</span>
+        </div>
+        <div class="id-field">
+          <div class="id-label">Full Name</div>
+          <div class="id-val large" id="em-name">Arjun Mehta</div>
+        </div>
+        <div class="id-row">
+          <div class="id-field">
+            <div class="id-label">Health ID</div>
+            <div class="id-val" id="em-hid">CW-4589-7821</div>
+          </div>
+          <div class="id-field">
+            <div class="id-label">Blood Group</div>
+            <div class="id-val" style="color:var(--red);font-size:22px;font-family:'Fraunces',serif;" id="em-blood">B+</div>
+          </div>
+          <div class="id-field">
+            <div class="id-label">Date of Birth</div>
+            <div class="id-val" id="em-dob">15 Mar 1990</div>
+          </div>
+        </div>
+        <div class="id-field">
+          <div class="id-label">Known Allergies</div>
+          <div class="id-val" id="em-allergies">Penicillin, Sulfa drugs</div>
+        </div>
+        <div class="id-field">
+          <div class="id-label">Current Medications</div>
+          <div class="id-val" id="em-meds">Amlodipine 5mg, Metformin 500mg</div>
+        </div>
+        <div class="id-field">
+          <div class="id-label">Medical Conditions</div>
+          <div class="id-val" id="em-conditions">Hypertension (Stage 1), Pre-diabetic</div>
+        </div>
+        <button class="btn btn-outline btn-sm" style="margin-top:8px;" onclick="openModal('edit-modal')">✏️ Edit Medical Info</button>
+      </div>
+
+      <!-- Right panel -->
+      <div style="display:flex;flex-direction:column;gap:20px;">
+        <!-- Emergency contacts -->
+        <div class="card">
+          <div class="section-header">
+            <div class="section-title">Emergency Contacts</div>
+            <button class="btn btn-outline btn-sm" onclick="openModal('contact-modal')">+ Add</button>
+          </div>
+          <div class="contacts-list" id="contacts-list"></div>
+        </div>
+
+        <!-- Share access -->
+        <div class="card">
+          <div class="section-title" style="margin-bottom:12px;">Share Emergency Access</div>
+          <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Generate a temporary link for first responders. Link expires in 24 hours.</p>
+          <div id="token-area" style="display:none;margin-bottom:14px;">
+            <div class="share-token-box">
+              <span id="share-token">CW-EMRG-XXXX-XXXX</span>
+              <button class="btn btn-sm btn-outline" onclick="copyToken()">Copy</button>
+            </div>
+            <div style="font-size:12px;color:var(--muted);margin-top:8px;" id="token-expiry"></div>
+          </div>
+          <button class="btn btn-sm" style="background:rgba(248,113,113,0.15);color:var(--red);border:1px solid rgba(248,113,113,0.3);" onclick="generateToken()">🔗 Generate Emergency Link</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nearby hospitals -->
+    <div class="card">
+      <div class="section-header">
+        <div class="section-title">Nearby Hospitals</div>
+        <button class="btn btn-outline btn-sm" onclick="findNearby()">📍 Use My Location</button>
+      </div>
+      <div id="hospital-list">
+        <div class="contacts-list">
+          <div class="contact-card">
+            <div class="contact-info"><div class="c-avatar">🏥</div><div><div style="font-weight:500">AIIMS Delhi</div><div style="font-size:12px;color:var(--muted);">Ansari Nagar · 2.4 km · 24/7</div></div></div>
+            <a href="tel:011-26588500" class="btn btn-sm btn-outline">Call</a>
+          </div>
+          <div class="contact-card">
+            <div class="contact-info"><div class="c-avatar">🏥</div><div><div style="font-weight:500">Apollo Hospital</div><div style="font-size:12px;color:var(--muted);">Sarita Vihar · 5.1 km · 24/7</div></div></div>
+            <a href="tel:1860-500-1066" class="btn btn-sm btn-outline">Call</a>
+          </div>
+          <div class="contact-card">
+            <div class="contact-info"><div class="c-avatar">🏥</div><div><div style="font-weight:500">Fortis Hospital</div><div style="font-size:12px;color:var(--muted);">Vasant Kunj · 7.3 km · 24/7</div></div></div>
+            <a href="tel:1800-111-7102" class="btn btn-sm btn-outline">Call</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Edit Medical Info Modal -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal" style="max-width:580px;">
+    <div class="modal-header"><div class="modal-title">Edit Medical Information</div><button class="modal-close">✕</button></div>
+    <div class="form-group"><label class="form-label">Known Allergies</label><input class="form-input" id="edit-allergies" placeholder="e.g. Penicillin, Peanuts"></div>
+    <div class="form-group"><label class="form-label">Current Medications</label><textarea class="form-textarea" id="edit-meds" placeholder="Drug name, dosage..." style="min-height:80px;"></textarea></div>
+    <div class="form-group"><label class="form-label">Medical Conditions</label><textarea class="form-textarea" id="edit-conditions" placeholder="e.g. Hypertension, Diabetes..." style="min-height:80px;"></textarea></div>
+    <div class="form-group"><label class="form-label">Blood Group</label>
+      <select class="form-select" id="edit-blood">
+        <option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:12px;justify-content:flex-end;">
+      <button class="btn btn-outline" onclick="closeModal('edit-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveMedInfo()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Contact Modal -->
+<div class="modal-overlay" id="contact-modal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Add Emergency Contact</div><button class="modal-close">✕</button></div>
+    <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="c-name" placeholder="Priya Mehta"></div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Relationship</label>
+        <select class="form-select" id="c-rel"><option>Spouse</option><option>Parent</option><option>Sibling</option><option>Friend</option><option>Doctor</option><option>Other</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Phone Number</label><input class="form-input" id="c-phone" placeholder="+91 98765 XXXXX"></div>
+    </div>
+    <div style="display:flex;gap:12px;justify-content:flex-end;">
+      <button class="btn btn-outline" onclick="closeModal('contact-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addContact()">Add Contact</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { buildSidebar, DEMO, toast, openModal, closeModal, setupModals } from '../js/shared.js';
+window.openModal = openModal; window.closeModal = closeModal;
+document.getElementById('sidebar-mount').outerHTML = buildSidebar('emergency', DEMO);
+setupModals();
+window.handleLogout = () => { sessionStorage.clear(); window.location.href = '../index.html'; };
+
+const MED_KEY  = 'cw_medinfo';
+const CONT_KEY = 'cw_contacts';
+
+const SEED_CONTACTS = [
+  { id:'1', name:'Priya Mehta', rel:'Spouse', phone:'+91 91234 56789' },
+  { id:'2', name:'Vijay Mehta', rel:'Parent', phone:'+91 98111 22333' },
+];
+
+let medInfo  = JSON.parse(localStorage.getItem(MED_KEY)  || 'null') || { allergies:'Penicillin, Sulfa drugs', meds:'Amlodipine 5mg, Metformin 500mg', conditions:'Hypertension (Stage 1), Pre-diabetic', blood:'B+' };
+let contacts = JSON.parse(localStorage.getItem(CONT_KEY) || 'null') || SEED_CONTACTS;
+
+function applyMedInfo() {
+  document.getElementById('em-allergies').textContent  = medInfo.allergies  || 'None known';
+  document.getElementById('em-meds').textContent       = medInfo.meds       || 'None';
+  document.getElementById('em-conditions').textContent = medInfo.conditions || 'None';
+  document.getElementById('em-blood').textContent      = medInfo.blood      || DEMO.blood;
+}
+
+function renderContacts() {
+  const el = document.getElementById('contacts-list');
+  if (!contacts.length) { el.innerHTML = `<div class="empty-state" style="padding:30px 0;"><span class="empty-icon" style="font-size:32px;">📞</span><h3 style="font-size:15px;">No contacts added</h3></div>`; return; }
+  el.innerHTML = contacts.map(c => `
+    <div class="contact-card">
+      <div class="contact-info">
+        <div class="c-avatar">${c.name[0]}</div>
+        <div>
+          <div style="font-weight:500">${c.name}</div>
+          <div style="font-size:12px;color:var(--muted)">${c.rel} · ${c.phone}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <a href="tel:${c.phone.replace(/\s/g,'')}" class="btn btn-sm" style="background:rgba(74,222,128,0.15);color:var(--sage);">📞</a>
+        <button class="btn btn-sm btn-danger" onclick="removeContact('${c.id}')">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+window.saveMedInfo = () => {
+  medInfo.allergies  = document.getElementById('edit-allergies').value.trim();
+  medInfo.meds       = document.getElementById('edit-meds').value.trim();
+  medInfo.conditions = document.getElementById('edit-conditions').value.trim();
+  medInfo.blood      = document.getElementById('edit-blood').value;
+  localStorage.setItem(MED_KEY, JSON.stringify(medInfo));
+  applyMedInfo();
+  closeModal('edit-modal');
+  toast('Medical info updated!');
+};
+
+window.addContact = () => {
+  const name  = document.getElementById('c-name').value.trim();
+  const rel   = document.getElementById('c-rel').value;
+  const phone = document.getElementById('c-phone').value.trim();
+  if (!name || !phone) { toast('Please fill in all fields.','error'); return; }
+  contacts.push({ id: Date.now().toString(), name, rel, phone });
+  localStorage.setItem(CONT_KEY, JSON.stringify(contacts));
+  renderContacts();
+  closeModal('contact-modal');
+  toast('Contact added!');
+};
+
+window.removeContact = (id) => {
+  contacts = contacts.filter(c => c.id !== id);
+  localStorage.setItem(CONT_KEY, JSON.stringify(contacts));
+  renderContacts();
+  toast('Contact removed.');
+};
+
+window.generateToken = () => {
+  const token = 'CW-EMRG-' + Math.random().toString(36).slice(2,6).toUpperCase() + '-' + Math.random().toString(36).slice(2,6).toUpperCase();
+  const expiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  document.getElementById('share-token').textContent = token;
+  document.getElementById('token-expiry').textContent = 'Expires: ' + expiry.toLocaleString('en-IN');
+  document.getElementById('token-area').style.display = 'block';
+  // Firebase: await addItem('emergency_tokens', { token, uid: DEMO.uid, expiresAt: expiry });
+  toast('Emergency link generated — valid for 24 hours.');
+};
+
+window.copyToken = () => {
+  const token = document.getElementById('share-token').textContent;
+  const url   = `${window.location.origin}/emergency-view.html?token=${token}`;
+  navigator.clipboard.writeText(url).then(() => toast('Link copied to clipboard!'));
+};
+
+window.findNearby = () => {
+  if (!navigator.geolocation) { toast('Geolocation not supported by your browser.','error'); return; }
+  navigator.geolocation.getCurrentPosition(
+    pos => toast(`Location found: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)} — Hospital map would load here.`),
+    ()  => toast('Location permission denied.','error')
+  );
+};
+
+// Pre-fill edit form
+document.getElementById('edit-allergies').value  = medInfo.allergies;
+document.getElementById('edit-meds').value       = medInfo.meds;
+document.getElementById('edit-conditions').value = medInfo.conditions;
+document.getElementById('edit-blood').value      = medInfo.blood;
+
+applyMedInfo();
+renderContacts();
+</script>
+</body>
+</html>

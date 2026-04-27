@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Find Doctors — CircleWell</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.doctor-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;}
+.doctor-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius2);padding:24px;transition:transform 0.2s,box-shadow 0.2s;}
+.doctor-card:hover{transform:translateY(-4px);box-shadow:0 0 30px rgba(74,222,128,0.1);}
+.doc-avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--navy3),var(--navy4));display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px;}
+.doc-name{font-weight:600;font-size:16px;margin-bottom:2px;}
+.doc-spec{font-size:13px;color:var(--muted);}
+.doc-meta{display:flex;gap:16px;margin:12px 0;font-size:13px;color:var(--muted);}
+.doc-meta span{display:flex;align-items:center;gap:4px;}
+.doc-rating{color:var(--gold);}
+.search-bar{display:flex;gap:12px;margin-bottom:28px;flex-wrap:wrap;}
+.search-bar input{flex:1;min-width:200px;}
+.search-bar select{width:200px;}
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div id="sidebar-mount"></div>
+  <main class="main">
+    <div class="page-header">
+      <h1>Find Doctors</h1>
+      <p>Discover top-rated specialists near you.</p>
+    </div>
+
+    <div class="search-bar">
+      <input class="form-input" id="search" placeholder="Search by name or specialty..." oninput="filterDoctors()">
+      <select class="form-select" id="spec-filter" onchange="filterDoctors()">
+        <option value="">All Specialties</option>
+        <option>General Physician</option>
+        <option>Cardiologist</option>
+        <option>Dermatologist</option>
+        <option>Neurologist</option>
+        <option>Orthopedist</option>
+        <option>Pediatrician</option>
+        <option>Psychiatrist</option>
+      </select>
+      <select class="form-select" id="avail-filter" onchange="filterDoctors()" style="width:160px;">
+        <option value="">Any Availability</option>
+        <option value="today">Available Today</option>
+        <option value="week">This Week</option>
+      </select>
+    </div>
+
+    <div class="doctor-grid" id="doctor-grid"></div>
+  </main>
+</div>
+
+<script type="module">
+import { buildSidebar, DEMO, toast } from '../js/shared.js';
+document.getElementById('sidebar-mount').outerHTML = buildSidebar('doctors', DEMO);
+window.handleLogout = () => { sessionStorage.clear(); window.location.href = '../index.html'; };
+
+const DOCTORS = [
+  { id:1,  name:'Dr. Neha Sharma',    specialty:'Cardiologist',      rating:4.9, exp:'12 yrs', fee:'₹800',  avail:'today', icon:'❤️', langs:'English, Hindi' },
+  { id:2,  name:'Dr. Rohan Kapoor',   specialty:'General Physician', rating:4.7, exp:'8 yrs',  fee:'₹500',  avail:'today', icon:'🩺', langs:'English, Hindi, Punjabi' },
+  { id:3,  name:'Dr. Ananya Singh',   specialty:'Dermatologist',     rating:4.8, exp:'10 yrs', fee:'₹700',  avail:'week',  icon:'✨', langs:'English, Hindi' },
+  { id:4,  name:'Dr. Vivek Menon',    specialty:'Neurologist',       rating:4.6, exp:'15 yrs', fee:'₹1200', avail:'week',  icon:'🧠', langs:'English, Malayalam' },
+  { id:5,  name:'Dr. Priya Iyer',     specialty:'Pediatrician',      rating:4.9, exp:'9 yrs',  fee:'₹600',  avail:'today', icon:'👶', langs:'English, Tamil' },
+  { id:6,  name:'Dr. Arjun Bose',     specialty:'Orthopedist',       rating:4.5, exp:'14 yrs', fee:'₹900',  avail:'week',  icon:'🦴', langs:'English, Bengali' },
+  { id:7,  name:'Dr. Meera Reddy',    specialty:'Psychiatrist',      rating:4.8, exp:'11 yrs', fee:'₹1000', avail:'today', icon:'🧘', langs:'English, Telugu' },
+  { id:8,  name:'Dr. Sanjay Mishra',  specialty:'Cardiologist',      rating:4.7, exp:'18 yrs', fee:'₹1100', avail:'week',  icon:'💓', langs:'English, Hindi' },
+];
+
+let filtered = [...DOCTORS];
+
+function render() {
+  const grid = document.getElementById('doctor-grid');
+  if (!filtered.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><span class="empty-icon">🔍</span><h3>No doctors found</h3><p>Try adjusting your filters.</p></div>`;
+    return;
+  }
+  grid.innerHTML = filtered.map(d => `
+    <div class="doctor-card">
+      <div class="doc-avatar">${d.icon}</div>
+      <div class="doc-name">${d.name}</div>
+      <div class="doc-spec">${d.specialty}</div>
+      <div class="doc-meta">
+        <span class="doc-rating">★ ${d.rating}</span>
+        <span>🕐 ${d.exp}</span>
+        <span>💬 ${d.fee}</span>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">🌐 ${d.langs}</div>
+      <span class="badge ${d.avail==='today'?'badge-green':'badge-gold'}" style="margin-bottom:14px;">${d.avail==='today'?'Available Today':'This Week'}</span>
+      <div style="display:flex;gap:8px;margin-top:12px;">
+        <a href="appointments.html" class="btn btn-primary btn-sm" style="flex:1;justify-content:center;">Book</a>
+        <button class="btn btn-outline btn-sm" onclick="showProfile(${d.id})">Profile</button>
+      </div>
+    </div>`).join('');
+}
+
+window.filterDoctors = () => {
+  const q    = document.getElementById('search').value.toLowerCase();
+  const spec = document.getElementById('spec-filter').value;
+  const avl  = document.getElementById('avail-filter').value;
+  filtered = DOCTORS.filter(d => {
+    const matchQ    = !q    || d.name.toLowerCase().includes(q) || d.specialty.toLowerCase().includes(q);
+    const matchSpec = !spec || d.specialty === spec;
+    const matchAvl  = !avl  || d.avail === avl;
+    return matchQ && matchSpec && matchAvl;
+  });
+  render();
+};
+
+window.showProfile = (id) => {
+  const d = DOCTORS.find(x => x.id === id);
+  toast(`Viewing profile of ${d.name} — (Full profile page coming soon)`);
+};
+
+render();
+</script>
+</body>
+</html>

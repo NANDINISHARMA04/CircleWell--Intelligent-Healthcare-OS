@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profile — CircleWell</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.profile-hero{background:linear-gradient(135deg,var(--navy3),var(--navy4));border:1px solid var(--border);border-radius:var(--radius2);padding:36px;display:flex;align-items:center;gap:28px;margin-bottom:28px;}
+.profile-avatar-lg{width:96px;height:96px;border-radius:50%;background:linear-gradient(135deg,var(--sage),var(--gold));display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:700;color:var(--navy);flex-shrink:0;position:relative;}
+.avatar-edit{position:absolute;bottom:0;right:0;width:28px;height:28px;background:var(--navy2);border:2px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;}
+.profile-name{font-family:'Fraunces',serif;font-size:28px;font-weight:700;margin-bottom:4px;}
+.badge-health-id{background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.2);color:var(--sage);padding:5px 12px;border-radius:99px;font-size:13px;font-weight:500;display:inline-flex;align-items:center;gap:6px;}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-bottom:28px;}
+.info-item{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;}
+.info-lbl{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.info-val{font-size:15px;font-weight:500;}
+.section-tabs{display:flex;gap:8px;margin-bottom:20px;}
+.section-tab{padding:8px 18px;border-radius:99px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.2s;}
+.section-tab.active{background:var(--sage);color:var(--navy);border-color:var(--sage);}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+.activity-item{display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid var(--border);}
+.activity-icon{width:38px;height:38px;border-radius:10px;background:var(--navy3);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.pref-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);}
+.toggle{position:relative;width:44px;height:24px;cursor:pointer;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;inset:0;background:var(--navy4);border-radius:12px;transition:0.2s;}
+.toggle input:checked + .toggle-slider{background:var(--sage);}
+.toggle-slider::before{content:'';position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:white;border-radius:50%;transition:0.2s;}
+.toggle input:checked + .toggle-slider::before{transform:translateX(20px);}
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div id="sidebar-mount"></div>
+  <main class="main">
+    <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;">
+      <div><h1>My Profile</h1><p>Manage your personal information and preferences.</p></div>
+      <button class="btn btn-primary" onclick="openModal('edit-profile-modal')">✏️ Edit Profile</button>
+    </div>
+
+    <!-- Profile hero -->
+    <div class="profile-hero">
+      <div class="profile-avatar-lg" id="avatar-lg">AM<div class="avatar-edit">✏️</div></div>
+      <div>
+        <div class="profile-name" id="prof-name">Nandini Sharma</div>
+        <div style="color:var(--muted);font-size:14px;margin:4px 0 12px;" id="prof-email">nandini.sharma@email.com</div>
+        <div class="badge-health-id" id="prof-hid">✦ CW-4589-7821</div>
+      </div>
+    </div>
+
+    <!-- Info grid -->
+    <div class="info-grid">
+      <div class="info-item"><div class="info-lbl">Date of Birth</div><div class="info-val" id="prof-dob">15 Mar 1990</div></div>
+      <div class="info-item"><div class="info-lbl">Blood Group</div><div class="info-val" style="color:var(--red)" id="prof-blood">B+</div></div>
+      <div class="info-item"><div class="info-lbl">Phone</div><div class="info-val" id="prof-phone">+91 98765 43210</div></div>
+      <div class="info-item"><div class="info-lbl">Emergency Contact</div><div class="info-val" id="prof-em">Priya Mehta</div></div>
+      <div class="info-item"><div class="info-lbl">Member Since</div><div class="info-val">Jan 2023</div></div>
+      <div class="info-item"><div class="info-lbl">Plan</div><div class="info-val text-gold">✦ Premium</div></div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="section-tabs">
+      <button class="section-tab active" onclick="switchTab('activity')">Activity</button>
+      <button class="section-tab" onclick="switchTab('preferences')">Preferences</button>
+      <button class="section-tab" onclick="switchTab('security')">Security</button>
+    </div>
+
+    <!-- Activity tab -->
+    <div class="tab-content card active" id="tab-activity">
+      <div class="activity-item">
+        <div class="activity-icon">📅</div>
+        <div><div style="font-weight:500;font-size:14px;">Appointment booked — Dr. Neha Sharma</div><div style="font-size:13px;color:var(--muted);margin-top:3px;">28 Apr 2025 · Cardiologist</div></div>
+      </div>
+      <div class="activity-item">
+        <div class="activity-icon">🧪</div>
+        <div><div style="font-weight:500;font-size:14px;">Lab report uploaded — CBC Blood Test</div><div style="font-size:13px;color:var(--muted);margin-top:3px;">20 Apr 2025</div></div>
+      </div>
+      <div class="activity-item">
+        <div class="activity-icon">📊</div>
+        <div><div style="font-weight:500;font-size:14px;">Vitals logged</div><div style="font-size:13px;color:var(--muted);margin-top:3px;">18 Apr 2025 · BP: 122/80, HR: 74</div></div>
+      </div>
+      <div class="activity-item">
+        <div class="activity-icon">💊</div>
+        <div><div style="font-weight:500;font-size:14px;">Prescription added — Amlodipine 5mg</div><div style="font-size:13px;color:var(--muted);margin-top:3px;">10 Apr 2025</div></div>
+      </div>
+      <div class="activity-item" style="border:none;">
+        <div class="activity-icon">🛡</div>
+        <div><div style="font-weight:500;font-size:14px;">Insurance claim filed — Apollo Hospital</div><div style="font-size:13px;color:var(--muted);margin-top:3px;">2 Apr 2025 · ₹38,000</div></div>
+      </div>
+    </div>
+
+    <!-- Preferences tab -->
+    <div class="tab-content card" id="tab-preferences">
+      <div class="pref-row">
+        <div><div style="font-weight:500;font-size:14px;">Email Notifications</div><div style="font-size:13px;color:var(--muted);">Appointment reminders and health alerts</div></div>
+        <label class="toggle"><input type="checkbox" id="pref-email" checked><span class="toggle-slider"></span></label>
+      </div>
+      <div class="pref-row">
+        <div><div style="font-weight:500;font-size:14px;">SMS Alerts</div><div style="font-size:13px;color:var(--muted);">Get text messages for critical updates</div></div>
+        <label class="toggle"><input type="checkbox" id="pref-sms" checked><span class="toggle-slider"></span></label>
+      </div>
+      <div class="pref-row">
+        <div><div style="font-weight:500;font-size:14px;">Medication Reminders</div><div style="font-size:13px;color:var(--muted);">Daily reminders to take your medicine</div></div>
+        <label class="toggle"><input type="checkbox" id="pref-meds" checked><span class="toggle-slider"></span></label>
+      </div>
+      <div class="pref-row">
+        <div><div style="font-weight:500;font-size:14px;">Mood Tracking</div><div style="font-size:13px;color:var(--muted);">Daily check-in prompts</div></div>
+        <label class="toggle"><input type="checkbox" id="pref-mood"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="pref-row" style="border:none;">
+        <div><div style="font-weight:500;font-size:14px;">Data Sharing with Doctors</div><div style="font-size:13px;color:var(--muted);">Allow your doctors to access your records</div></div>
+        <label class="toggle"><input type="checkbox" id="pref-share" checked><span class="toggle-slider"></span></label>
+      </div>
+      <button class="btn btn-primary btn-sm" style="margin-top:16px;" onclick="savePrefs()">Save Preferences</button>
+    </div>
+
+    <!-- Security tab -->
+    <div class="tab-content card" id="tab-security">
+      <div style="margin-bottom:24px;">
+        <div style="font-weight:500;margin-bottom:16px;font-size:15px;">Change Password</div>
+        <div class="form-group"><label class="form-label">Current Password</label><input class="form-input" type="password" id="cur-pw" placeholder="••••••••"></div>
+        <div class="form-group"><label class="form-label">New Password</label><input class="form-input" type="password" id="new-pw" placeholder="Min 8 characters"></div>
+        <div class="form-group"><label class="form-label">Confirm New Password</label><input class="form-input" type="password" id="confirm-pw" placeholder="Repeat new password"></div>
+        <button class="btn btn-primary btn-sm" onclick="changePassword()">Update Password</button>
+      </div>
+      <hr style="border-color:var(--border);margin:24px 0;">
+      <div>
+        <div style="font-weight:500;margin-bottom:8px;font-size:15px;">Two-Factor Authentication</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:12px;">Add an extra layer of security to your account.</div>
+        <button class="btn btn-outline btn-sm">Enable 2FA</button>
+      </div>
+      <hr style="border-color:var(--border);margin:24px 0;">
+      <div>
+        <div style="font-weight:500;margin-bottom:8px;font-size:15px;color:var(--red);">Danger Zone</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:12px;">Permanently delete your CircleWell account and all associated data.</div>
+        <button class="btn btn-danger btn-sm" onclick="confirmDelete()">Delete Account</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="modal-overlay" id="edit-profile-modal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Edit Profile</div><button class="modal-close">✕</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="edit-name" value="Arjun Mehta"></div>
+      <div class="form-group"><label class="form-label">Date of Birth</label><input class="form-input" type="date" id="edit-dob" value="1990-03-15"></div>
+      <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="edit-phone" value="+91 98765 43210"></div>
+      <div class="form-group"><label class="form-label">Blood Group</label>
+        <select class="form-select" id="edit-blood-prof">
+          <option>A+</option><option>A-</option><option selected>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Emergency Contact</label><input class="form-input" id="edit-em" value="Priya Mehta — +91 91234 56789"></div>
+    <div style="display:flex;gap:12px;justify-content:flex-end;">
+      <button class="btn btn-outline" onclick="closeModal('edit-profile-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveProfile()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { buildSidebar, DEMO, toast, openModal, closeModal, setupModals } from '../js/shared.js';
+window.openModal = openModal; window.closeModal = closeModal;
+document.getElementById('sidebar-mount').outerHTML = buildSidebar('profile', DEMO);
+setupModals();
+window.handleLogout = () => { sessionStorage.clear(); window.location.href = '../index.html'; };
+
+window.switchTab = (id) => {
+  document.querySelectorAll('.section-tab').forEach((t,i) => {
+    const ids = ['activity','preferences','security'];
+    t.classList.toggle('active', ids[i] === id);
+  });
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+};
+
+window.saveProfile = () => {
+  const name  = document.getElementById('edit-name').value.trim();
+  const dob   = document.getElementById('edit-dob').value;
+  const phone = document.getElementById('edit-phone').value.trim();
+  const blood = document.getElementById('edit-blood-prof').value;
+  const em    = document.getElementById('edit-em').value.trim();
+  if (!name) { toast('Name is required.','error'); return; }
+  document.getElementById('prof-name').textContent = name;
+  document.getElementById('prof-phone').textContent = phone;
+  document.getElementById('prof-blood').textContent = blood;
+  document.getElementById('prof-em').textContent = em.split('—')[0].trim();
+  if (dob) {
+    const d = new Date(dob);
+    document.getElementById('prof-dob').textContent = d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+  }
+  // Update avatar initials
+  const initials = name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('avatar-lg').childNodes[0].textContent = initials;
+  // Firebase: await setUserProfile(uid, { name, phone, blood, dob, emergency: em });
+  localStorage.setItem('cw_profile', JSON.stringify({ name, dob, phone, blood, emergency: em }));
+  closeModal('edit-profile-modal');
+  toast('Profile updated successfully!');
+};
+
+window.savePrefs = () => {
+  const prefs = {
+    email: document.getElementById('pref-email').checked,
+    sms:   document.getElementById('pref-sms').checked,
+    meds:  document.getElementById('pref-meds').checked,
+    mood:  document.getElementById('pref-mood').checked,
+    share: document.getElementById('pref-share').checked
+  };
+  localStorage.setItem('cw_prefs', JSON.stringify(prefs));
+  toast('Preferences saved!');
+};
+
+window.changePassword = () => {
+  const cur  = document.getElementById('cur-pw').value;
+  const nw   = document.getElementById('new-pw').value;
+  const conf = document.getElementById('confirm-pw').value;
+  if (!cur || !nw || !conf) { toast('Please fill in all fields.','error'); return; }
+  if (nw.length < 8)       { toast('New password must be at least 8 characters.','error'); return; }
+  if (nw !== conf)          { toast('Passwords do not match.','error'); return; }
+  // Firebase: await updatePassword(auth.currentUser, nw);
+  toast('Password updated successfully!');
+  ['cur-pw','new-pw','confirm-pw'].forEach(id => document.getElementById(id).value = '');
+};
+
+window.confirmDelete = () => {
+  if (confirm('Are you sure you want to delete your account? This cannot be undone.')) {
+    sessionStorage.clear(); localStorage.clear();
+    toast('Account deleted. Redirecting...');
+    setTimeout(() => window.location.href = '../index.html', 1500);
+  }
+};
+
+// Load saved prefs
+const prefs = JSON.parse(localStorage.getItem('cw_prefs') || '{}');
+if (prefs.email !== undefined) document.getElementById('pref-email').checked = prefs.email;
+if (prefs.sms   !== undefined) document.getElementById('pref-sms').checked   = prefs.sms;
+if (prefs.meds  !== undefined) document.getElementById('pref-meds').checked  = prefs.meds;
+if (prefs.mood  !== undefined) document.getElementById('pref-mood').checked  = prefs.mood;
+if (prefs.share !== undefined) document.getElementById('pref-share').checked = prefs.share;
+
+// Load saved profile
+const prof = JSON.parse(localStorage.getItem('cw_profile') || '{}');
+if (prof.name) {
+  document.getElementById('prof-name').textContent = prof.name;
+  document.getElementById('edit-name').value = prof.name;
+  const initials = prof.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('avatar-lg').childNodes[0].textContent = initials;
+}
+if (prof.phone) { document.getElementById('prof-phone').textContent = prof.phone; document.getElementById('edit-phone').value = prof.phone; }
+if (prof.blood) { document.getElementById('prof-blood').textContent = prof.blood; }
+if (prof.emergency) { document.getElementById('prof-em').textContent = prof.emergency.split('—')[0].trim(); }
+</script>
+</body>
+</html>

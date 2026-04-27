@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Family — CircleWell</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.family-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px;}
+.member-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius2);padding:24px;text-align:center;transition:transform 0.2s;}
+.member-card:hover{transform:translateY(-4px);}
+.member-avatar{width:64px;height:64px;border-radius:50%;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:600;}
+.member-name{font-size:17px;font-weight:600;margin-bottom:4px;}
+.member-rel{font-size:13px;color:var(--muted);margin-bottom:12px;}
+.member-stats{display:flex;justify-content:center;gap:20px;font-size:13px;margin-bottom:16px;}
+.member-stats span{text-align:center;}
+.member-stats strong{display:block;font-size:16px;color:var(--text);}
+.member-stats small{color:var(--muted);}
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div id="sidebar-mount"></div>
+  <main class="main">
+    <div class="page-header">
+      <h1>Family Profiles</h1>
+      <p>Manage health records for your loved ones.</p>
+    </div>
+    <div style="margin-bottom:24px;text-align:right;">
+      <button class="btn btn-primary" onclick="openModal('member-modal')">+ Add Family Member</button>
+    </div>
+    <div class="family-grid" id="family-grid"></div>
+  </main>
+</div>
+
+<!-- Add Member Modal -->
+<div class="modal-overlay" id="member-modal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Add Family Member</div><button class="modal-close">✕</button></div>
+    <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="mem-name" placeholder="Priya Mehta"></div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Relationship</label>
+        <select class="form-select" id="mem-rel">
+          <option>Spouse</option><option>Parent</option><option>Child</option><option>Sibling</option><option>Other</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Date of Birth</label><input class="form-input" type="date" id="mem-dob"></div>
+      <div class="form-group"><label class="form-label">Blood Group</label>
+        <select class="form-select" id="mem-blood">
+          <option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="mem-phone" placeholder="+91 98765 XXXXX"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Known Conditions (optional)</label><input class="form-input" id="mem-conditions" placeholder="Diabetes, Hypertension..."></div>
+    <div style="display:flex;gap:12px;justify-content:flex-end;">
+      <button class="btn btn-outline" onclick="closeModal('member-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addMember()">Add Member</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { buildSidebar, DEMO, toast, openModal, closeModal, setupModals } from '../js/shared.js';
+window.openModal = openModal; window.closeModal = closeModal;
+document.getElementById('sidebar-mount').outerHTML = buildSidebar('family', DEMO);
+setupModals();
+window.handleLogout = () => { sessionStorage.clear(); window.location.href = '../index.html'; };
+
+const COLORS = ['#4ade80','#d4a847','#f87171','#60a5fa','#a78bfa','#fb923c'];
+
+const SEED = [
+  { id:'1', name:'Deepak Sharma',  rel:'Spouse', dob:'1992-07-22', blood:'A+', phone:'+91 91234 56789', conditions:'None', visits:8,  rx:12 },
+  { id:'2', name:'Mamta Sharma',  rel:'Parent', dob:'1960-03-10', blood:'O+', phone:'+91 98111 22333', conditions:'Hypertension, Diabetes', visits:24, rx:36 },
+  { id:'3', name:'Drishti Sharma',  rel:'Parent', dob:'1963-11-05', blood:'B+', phone:'+91 98222 11444', conditions:'Thyroid', visits:15, rx:22 },
+  { id:'4', name:'Ivaana Sharma',  rel:'Child',  dob:'2018-05-18', blood:'A+', phone:'—',               conditions:'None', visits:6,  rx:5  },
+];
+
+let members = JSON.parse(localStorage.getItem('cw_family') || 'null') || SEED;
+
+function age(dob) {
+  const d = new Date(dob); const n = new Date();
+  let a = n.getFullYear() - d.getFullYear();
+  if (n < new Date(n.getFullYear(), d.getMonth(), d.getDate())) a--;
+  return a;
+}
+
+function render() {
+  const grid = document.getElementById('family-grid');
+  if (!members.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><span class="empty-icon">👨‍👩‍👧</span><h3>No family members</h3><p>Add your family members to manage their health together.</p></div>`;
+    return;
+  }
+  grid.innerHTML = members.map((m,i) => `
+    <div class="member-card">
+      <div class="member-avatar" style="background:${COLORS[i%COLORS.length]}22;color:${COLORS[i%COLORS.length]};">
+        ${m.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
+      </div>
+      <div class="member-name">${m.name}</div>
+      <div class="member-rel">${m.rel} · ${age(m.dob)} yrs · Blood: ${m.blood}</div>
+      ${m.conditions && m.conditions !== 'None' ? `<span class="badge badge-gold" style="margin-bottom:12px;">${m.conditions}</span>` : '<span class="badge badge-green" style="margin-bottom:12px;">Healthy</span>'}
+      <div class="member-stats">
+        <span><strong>${m.visits}</strong><small>Visits</small></span>
+        <span><strong>${m.rx}</strong><small>Prescriptions</small></span>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:16px;">📞 ${m.phone}</div>
+      <div style="display:flex;gap:8px;justify-content:center;">
+        <button class="btn btn-outline btn-sm" onclick="viewRecords('${m.id}')">Records</button>
+        <button class="btn btn-danger btn-sm" onclick="removeMember('${m.id}')">Remove</button>
+      </div>
+    </div>`).join('');
+}
+
+window.addMember = () => {
+  const name       = document.getElementById('mem-name').value.trim();
+  const rel        = document.getElementById('mem-rel').value;
+  const dob        = document.getElementById('mem-dob').value;
+  const blood      = document.getElementById('mem-blood').value;
+  const phone      = document.getElementById('mem-phone').value.trim() || '—';
+  const conditions = document.getElementById('mem-conditions').value.trim() || 'None';
+  if (!name || !dob) { toast('Please fill required fields.','error'); return; }
+  members.push({ id: Date.now().toString(), name, rel, dob, blood, phone, conditions, visits:0, rx:0 });
+  localStorage.setItem('cw_family', JSON.stringify(members));
+  render();
+  closeModal('member-modal');
+  toast(`${name} added to your family.`);
+};
+
+window.removeMember = (id) => {
+  members = members.filter(m => m.id !== id);
+  localStorage.setItem('cw_family', JSON.stringify(members));
+  render();
+  toast('Member removed.');
+};
+
+window.viewRecords = (id) => {
+  const m = members.find(x => x.id === id);
+  toast(`Viewing records for ${m.name} — (Individual records page coming soon)`);
+};
+
+render();
+</script>
+</body>
+</html>

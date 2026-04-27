@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Medical Vault — CircleWell</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.records-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px;}
+.record-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius2);padding:24px;transition:transform 0.2s;}
+.record-card:hover{transform:translateY(-3px);}
+.rec-icon{font-size:32px;margin-bottom:12px;}
+.rec-name{font-weight:600;font-size:15px;margin-bottom:4px;}
+.rec-meta{font-size:12px;color:var(--muted);}
+.upload-zone{border:2px dashed var(--border);border-radius:var(--radius2);padding:40px;text-align:center;cursor:pointer;transition:border-color 0.2s;}
+.upload-zone:hover{border-color:var(--sage);}
+.cat-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px;}
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div id="sidebar-mount"></div>
+  <main class="main">
+    <div class="page-header">
+      <h1>Medical Vault</h1>
+      <p>Your encrypted, secure digital health records.</p>
+    </div>
+
+    <div style="display:flex;gap:12px;margin-bottom:28px;align-items:center;flex-wrap:wrap;">
+      <input class="form-input" id="rec-search" placeholder="Search records..." style="max-width:300px;" oninput="filterRecords()">
+      <div class="cat-tabs" style="margin:0;">
+        <button class="btn btn-primary btn-sm filter-tab active" data-cat="all">All</button>
+        <button class="btn btn-outline btn-sm filter-tab" data-cat="prescription">Prescriptions</button>
+        <button class="btn btn-outline btn-sm filter-tab" data-cat="lab">Lab Reports</button>
+        <button class="btn btn-outline btn-sm filter-tab" data-cat="imaging">Imaging</button>
+        <button class="btn btn-outline btn-sm filter-tab" data-cat="discharge">Discharge</button>
+        <button class="btn btn-outline btn-sm filter-tab" data-cat="vaccination">Vaccination</button>
+      </div>
+      <button class="btn btn-primary btn-sm" style="margin-left:auto;" onclick="openModal('upload-modal')">+ Upload Record</button>
+    </div>
+
+    <div class="records-grid" id="records-grid"></div>
+  </main>
+</div>
+
+<!-- Upload Modal -->
+<div class="modal-overlay" id="upload-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Upload Record</div>
+      <button class="modal-close">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Record Name</label>
+      <input class="form-input" id="rec-name" placeholder="Blood Test Report – April 2025">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Category</label>
+      <select class="form-select" id="rec-cat">
+        <option value="prescription">Prescription</option>
+        <option value="lab">Lab Report</option>
+        <option value="imaging">Imaging (X-Ray/MRI)</option>
+        <option value="discharge">Discharge Summary</option>
+        <option value="vaccination">Vaccination Record</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Date</label>
+      <input class="form-input" type="date" id="rec-date">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Doctor / Hospital</label>
+      <input class="form-input" id="rec-doctor" placeholder="Dr. Neha Sharma / Apollo Hospital">
+    </div>
+    <div class="form-group">
+      <div class="upload-zone" onclick="document.getElementById('rec-file').click()">
+        <div style="font-size:32px;margin-bottom:8px;">📎</div>
+        <div style="font-size:14px;font-weight:500;" id="file-label">Click to select file</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;">PDF, JPG, PNG — up to 20MB</div>
+        <input type="file" id="rec-file" style="display:none" accept=".pdf,.jpg,.jpeg,.png" onchange="document.getElementById('file-label').textContent=this.files[0]?.name||'Click to select file'">
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;justify-content:flex-end;">
+      <button class="btn btn-outline" onclick="closeModal('upload-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="uploadRecord()">Save Record</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { buildSidebar, DEMO, toast, openModal, closeModal, setupModals } from '../js/shared.js';
+window.openModal = openModal; window.closeModal = closeModal;
+document.getElementById('sidebar-mount').outerHTML = buildSidebar('records', DEMO);
+setupModals();
+window.handleLogout = () => { sessionStorage.clear(); window.location.href = '../index.html'; };
+
+const CAT_ICONS = { prescription:'💊', lab:'🧪', imaging:'🩻', discharge:'📋', vaccination:'💉' };
+const CAT_LABELS = { prescription:'Prescription', lab:'Lab Report', imaging:'Imaging', discharge:'Discharge', vaccination:'Vaccination' };
+
+const SEED = [
+  { id:'1', name:'Cardiac Stress Test', cat:'lab',          date:'2025-04-15', doctor:'Dr. Neha Sharma', size:'2.4 MB' },
+  { id:'2', name:'BP Medication Rx',    cat:'prescription', date:'2025-04-10', doctor:'Dr. Rohan Kapoor', size:'0.3 MB' },
+  { id:'3', name:'Chest X-Ray',          cat:'imaging',      date:'2025-03-28', doctor:'Apollo Hospital',  size:'5.1 MB' },
+  { id:'4', name:'Discharge Summary',   cat:'discharge',    date:'2025-03-01', doctor:'Fortis Hospital',  size:'1.2 MB' },
+  { id:'5', name:'COVID Vaccination',   cat:'vaccination',  date:'2024-11-20', doctor:'GoHealth Clinic',  size:'0.1 MB' },
+  { id:'6', name:'CBC Blood Test',       cat:'lab',          date:'2025-02-14', doctor:'Dr. Vivek Menon',  size:'1.8 MB' },
+];
+
+const KEY = 'cw_records';
+let allRecs = JSON.parse(localStorage.getItem(KEY) || 'null') || SEED;
+let curCat  = 'all';
+
+function save() { localStorage.setItem(KEY, JSON.stringify(allRecs)); }
+
+function render() {
+  const q   = document.getElementById('rec-search').value.toLowerCase();
+  const data = allRecs.filter(r => {
+    const matchCat = curCat === 'all' || r.cat === curCat;
+    const matchQ   = !q || r.name.toLowerCase().includes(q) || r.doctor.toLowerCase().includes(q);
+    return matchCat && matchQ;
+  });
+  const grid = document.getElementById('records-grid');
+  if (!data.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><span class="empty-icon">🗂</span><h3>No records found</h3><p>Upload your first medical record.</p></div>`;
+    return;
+  }
+  grid.innerHTML = data.map(r => `
+    <div class="record-card">
+      <div class="rec-icon">${CAT_ICONS[r.cat]||'📄'}</div>
+      <div class="rec-name">${r.name}</div>
+      <div class="rec-meta">${r.date} · ${r.doctor}</div>
+      <div style="margin-top:8px;"><span class="badge badge-muted">${CAT_LABELS[r.cat]}</span> <span class="badge badge-muted" style="margin-left:4px;">${r.size||''}</span></div>
+      <div style="display:flex;gap:8px;margin-top:14px;">
+        <button class="btn btn-outline btn-sm" onclick="downloadRec('${r.id}')">View</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteRec('${r.id}')">Delete</button>
+      </div>
+    </div>`).join('');
+}
+
+window.filterRecords = render;
+
+window.uploadRecord = () => {
+  const name   = document.getElementById('rec-name').value.trim();
+  const cat    = document.getElementById('rec-cat').value;
+  const date   = document.getElementById('rec-date').value;
+  const doctor = document.getElementById('rec-doctor').value.trim();
+  if (!name || !date) { toast('Please fill in required fields.','error'); return; }
+  const rec = { id: Date.now().toString(), name, cat, date, doctor, size: '— MB' };
+  allRecs.unshift(rec);
+  save();
+  // Firebase: await addItem('records', { ...rec, uid: DEMO.uid });
+  render();
+  closeModal('upload-modal');
+  toast('Record uploaded successfully!');
+};
+
+window.deleteRec = (id) => {
+  allRecs = allRecs.filter(r => r.id !== id);
+  save();
+  render();
+  toast('Record deleted.');
+};
+
+window.downloadRec = (id) => {
+  const r = allRecs.find(x => x.id === id);
+  toast(`Opening "${r.name}" — (File viewer would open here)`);
+};
+
+document.querySelectorAll('.filter-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-tab').forEach(b => { b.classList.remove('active','btn-primary'); b.classList.add('btn-outline'); });
+    btn.classList.add('active','btn-primary'); btn.classList.remove('btn-outline');
+    curCat = btn.dataset.cat;
+    render();
+  });
+});
+
+document.getElementById('rec-date').valueAsDate = new Date();
+render();
+</script>
+</body>
+</html>

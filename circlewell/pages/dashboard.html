@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — CircleWell</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="app-shell" id="shell">
+  <div id="sidebar-mount"></div>
+  <main class="main">
+    <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;">
+      <div>
+        <h1 id="greeting">Good morning 👋</h1>
+        <p id="subline">Here's what's happening with your health today.</p>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-family:'Fraunces',serif;font-size:22px;color:var(--sage)" id="hid">CW-4589-7821</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px;">Health ID</div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stat-grid">
+      <div class="stat-card">
+        <span class="icon">🏥</span>
+        <div class="value" id="s-visits">12</div>
+        <div class="label">Doctor Visits</div>
+        <div class="trend up">↑ 3 this month</div>
+      </div>
+      <div class="stat-card">
+        <span class="icon">💊</span>
+        <div class="value" id="s-rx">28</div>
+        <div class="label">Prescriptions</div>
+        <div class="trend up">↑ 2 active</div>
+      </div>
+      <div class="stat-card">
+        <span class="icon">🧪</span>
+        <div class="value" id="s-reports">5</div>
+        <div class="label">Lab Reports</div>
+        <div class="trend up">↑ 1 new</div>
+      </div>
+      <div class="stat-card">
+        <span class="icon">📦</span>
+        <div class="value" id="s-orders">2</div>
+        <div class="label">Active Orders</div>
+        <div class="trend down">↓ 1 pending</div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:28px;">
+      <!-- Upcoming appointments -->
+      <div class="card">
+        <div class="section-header">
+          <div class="section-title">Upcoming Appointments</div>
+          <a href="appointments.html" class="btn btn-outline btn-sm">View all</a>
+        </div>
+        <div id="upcoming-list">
+          <div style="padding:14px 0;border-bottom:1px solid var(--border);">
+            <div style="font-weight:500;font-size:14px;">Dr. Neha Sharma</div>
+            <div style="font-size:13px;color:var(--muted);margin-top:3px;">Cardiologist · 28 Apr, 10:30 AM</div>
+            <span class="badge badge-green" style="margin-top:8px;">Confirmed</span>
+          </div>
+          <div style="padding:14px 0;">
+            <div style="font-weight:500;font-size:14px;">Dr. Rohan Kapoor</div>
+            <div style="font-size:13px;color:var(--muted);margin-top:3px;">General Physician · 5 May, 2:00 PM</div>
+            <span class="badge badge-gold" style="margin-top:8px;">Pending</span>
+          </div>
+        </div>
+        <a href="appointments.html" class="btn btn-primary btn-sm" style="margin-top:16px;">+ Book Appointment</a>
+      </div>
+
+      <!-- Mood tracker -->
+      <div class="card">
+        <div class="section-header">
+          <div class="section-title">How are you feeling?</div>
+        </div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:20px;">Select your mood to get personalised suggestions.</p>
+        <div style="display:flex;justify-content:space-around;font-size:40px;margin-bottom:20px;">
+          <span class="mood-emoji" data-mood="great"     title="Great">😊</span>
+          <span class="mood-emoji" data-mood="sick"      title="Sick">😷</span>
+          <span class="mood-emoji" data-mood="tired"     title="Tired">😴</span>
+          <span class="mood-emoji" data-mood="anxious"   title="Anxious">😰</span>
+          <span class="mood-emoji" data-mood="energetic" title="Energetic">💪</span>
+        </div>
+        <div id="mood-result" style="font-size:14px;color:var(--muted);text-align:center;min-height:40px;"></div>
+        <div id="mood-history" style="margin-top:16px;font-size:13px;color:var(--muted);">
+          Recent: <span id="mood-recent" style="color:var(--text)">Not recorded today</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick actions -->
+    <div class="section-header"><div class="section-title">Quick Actions</div></div>
+    <div class="grid-3" style="margin-bottom:28px;">
+      <a href="doctors.html"      class="card card-sm" style="text-decoration:none;color:inherit;transition:transform 0.2s,box-shadow 0.2s;cursor:pointer;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 0 30px rgba(74,222,128,0.1)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+        <div style="font-size:28px;margin-bottom:10px;">🔬</div>
+        <div style="font-weight:500;color:var(--sage);">Find Doctors</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px;">Search top specialists</div>
+      </a>
+      <a href="records.html"      class="card card-sm" style="text-decoration:none;color:inherit;transition:transform 0.2s,box-shadow 0.2s;cursor:pointer;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 0 30px rgba(74,222,128,0.1)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+        <div style="font-size:28px;margin-bottom:10px;">🗂</div>
+        <div style="font-weight:500;color:var(--sage);">Medical Vault</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px;">Secure digital records</div>
+      </a>
+      <a href="analytics.html"    class="card card-sm" style="text-decoration:none;color:inherit;transition:transform 0.2s,box-shadow 0.2s;cursor:pointer;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 0 30px rgba(74,222,128,0.1)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+        <div style="font-size:28px;margin-bottom:10px;">📊</div>
+        <div style="font-weight:500;color:var(--sage);">Health Analytics</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px;">Visual health tracking</div>
+      </a>
+      <a href="insurance.html"    class="card card-sm" style="text-decoration:none;color:inherit;transition:transform 0.2s,box-shadow 0.2s;cursor:pointer;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 0 30px rgba(74,222,128,0.1)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+        <div style="font-size:28px;margin-bottom:10px;">🛡</div>
+        <div style="font-weight:500;color:var(--sage);">Insurance & Claims</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px;">Manage your policies</div>
+      </a>
+      <a href="family.html"       class="card card-sm" style="text-decoration:none;color:inherit;transition:transform 0.2s,box-shadow 0.2s;cursor:pointer;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 0 30px rgba(74,222,128,0.1)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+        <div style="font-size:28px;margin-bottom:10px;">👨‍👩‍👧</div>
+        <div style="font-weight:500;color:var(--sage);">Family Profiles</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px;">Manage loved ones</div>
+      </a>
+      <a href="emergency.html"    class="card card-sm" style="text-decoration:none;color:inherit;border:1px solid rgba(248,113,113,0.2);transition:transform 0.2s,box-shadow 0.2s;cursor:pointer;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 0 30px rgba(248,113,113,0.1)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+        <div style="font-size:28px;margin-bottom:10px;">🚨</div>
+        <div style="font-weight:500;color:var(--red);">Emergency Access</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px;">Instant secure sharing</div>
+      </a>
+    </div>
+  </main>
+</div>
+
+<script type="module">
+import { buildSidebar, DEMO } from '../js/shared.js';
+
+const user = DEMO;
+document.getElementById('sidebar-mount').outerHTML = buildSidebar('dashboard', user);
+
+// Greeting
+const h = new Date().getHours();
+const g = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+document.getElementById('greeting').textContent = g + ', ' + user.name.split(' ')[0] + ' 👋';
+document.getElementById('hid').textContent = user.healthId;
+
+// Stats from demo or Firebase
+document.getElementById('s-visits').textContent   = user.stats.visits;
+document.getElementById('s-rx').textContent        = user.stats.prescriptions;
+document.getElementById('s-reports').textContent   = user.stats.reports;
+document.getElementById('s-orders').textContent    = user.stats.orders;
+
+// Mood tracker
+const moodMessages = {
+  great:     '✨ Great! Stay hydrated and keep up your streak.',
+  sick:      '🤒 Feel better soon. Consider booking a doctor visit.',
+  tired:     '😴 Rest up. Try to sleep 7-8 hours tonight.',
+  anxious:   '🧘 Try a 5-min breathing exercise. You\'ve got this.',
+  energetic: '💪 Awesome energy! Great day to log a workout.'
+};
+
+document.querySelectorAll('.mood-emoji').forEach(el => {
+  el.style.cursor = 'pointer';
+  el.style.transition = 'transform 0.2s';
+  el.addEventListener('mouseenter', () => el.style.transform = 'scale(1.3)');
+  el.addEventListener('mouseleave', () => el.style.transform = '');
+  el.addEventListener('click', () => {
+    const mood = el.dataset.mood;
+    document.getElementById('mood-result').innerHTML = `<span style="color:var(--sage)">${moodMessages[mood]}</span>`;
+    document.getElementById('mood-recent').textContent = el.title + ' · Just now';
+    // Firebase: addItem('moods', { uid: user.uid, mood, createdAt: serverTimestamp() });
+    localStorage.setItem('cw_mood', JSON.stringify({ mood, label: el.title, time: new Date().toISOString() }));
+  });
+});
+
+const saved = localStorage.getItem('cw_mood');
+if (saved) {
+  const { label, time } = JSON.parse(saved);
+  const d = new Date(time);
+  document.getElementById('mood-recent').textContent = label + ' · ' + d.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
+}
+
+window.handleLogout = () => { sessionStorage.clear(); window.location.href = '../index.html'; };
+</script>
+</body>
+</html>

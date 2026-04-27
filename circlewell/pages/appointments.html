@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Appointments — CircleWell</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="app-shell">
+  <div id="sidebar-mount"></div>
+  <main class="main">
+    <div class="page-header">
+      <h1>Appointments</h1>
+      <p>Manage your clinic visits and video consultations.</p>
+    </div>
+
+    <!-- Filter tabs -->
+    <div style="display:flex;gap:8px;margin-bottom:28px;flex-wrap:wrap;">
+      <button class="btn btn-primary btn-sm filter-tab active" data-filter="all">All</button>
+      <button class="btn btn-outline btn-sm filter-tab" data-filter="confirmed">Confirmed</button>
+      <button class="btn btn-outline btn-sm filter-tab" data-filter="pending">Pending</button>
+      <button class="btn btn-outline btn-sm filter-tab" data-filter="completed">Completed</button>
+      <button class="btn btn-outline btn-sm filter-tab" data-filter="cancelled">Cancelled</button>
+      <button class="btn btn-primary btn-sm" style="margin-left:auto;" onclick="openModal('apt-modal')">+ Book Appointment</button>
+    </div>
+
+    <!-- Appointments list -->
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Doctor</th>
+              <th>Specialty</th>
+              <th>Date & Time</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="apt-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Book Appointment Modal -->
+<div class="modal-overlay" id="apt-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Book Appointment</div>
+      <button class="modal-close">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">Doctor Name</label>
+        <input class="form-input" id="apt-doctor" placeholder="Dr. Neha Sharma">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Specialty</label>
+        <select class="form-select" id="apt-specialty">
+          <option>General Physician</option>
+          <option>Cardiologist</option>
+          <option>Dermatologist</option>
+          <option>Neurologist</option>
+          <option>Orthopedist</option>
+          <option>Pediatrician</option>
+          <option>Psychiatrist</option>
+          <option>Gynecologist</option>
+          <option>Ophthalmologist</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date</label>
+        <input class="form-input" type="date" id="apt-date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Time</label>
+        <input class="form-input" type="time" id="apt-time">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Consultation Type</label>
+      <select class="form-select" id="apt-type">
+        <option value="clinic">Clinic Visit</option>
+        <option value="video">Video Consult</option>
+        <option value="home">Home Visit</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes (optional)</label>
+      <textarea class="form-textarea" id="apt-notes" placeholder="Reason for visit, symptoms..."></textarea>
+    </div>
+    <div style="display:flex;gap:12px;justify-content:flex-end;">
+      <button class="btn btn-outline" onclick="closeModal('apt-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="bookAppointment()">Confirm Booking</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { buildSidebar, DEMO, toast, openModal, closeModal, setupModals } from '../js/shared.js';
+window.openModal = openModal; window.closeModal = closeModal;
+
+document.getElementById('sidebar-mount').outerHTML = buildSidebar('appointments', DEMO);
+setupModals();
+window.handleLogout = () => { sessionStorage.clear(); window.location.href = '../index.html'; };
+
+const STORAGE_KEY = 'cw_appointments';
+
+const SEED = [
+  { id:'1', doctor:'Dr. Neha Sharma',  specialty:'Cardiologist',      date:'2025-04-28', time:'10:30', type:'clinic', status:'confirmed', notes:'' },
+  { id:'2', doctor:'Dr. Rohan Kapoor', specialty:'General Physician', date:'2025-05-05', time:'14:00', type:'video',  status:'pending',   notes:'Routine checkup' },
+  { id:'3', doctor:'Dr. Ananya Singh', specialty:'Dermatologist',     date:'2025-04-15', time:'11:00', type:'clinic', status:'completed', notes:'Skin rash' },
+  { id:'4', doctor:'Dr. Vivek Menon',  specialty:'Neurologist',       date:'2025-04-10', time:'09:00', type:'video',  status:'cancelled', notes:'' },
+];
+
+function load() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  return saved ? JSON.parse(saved) : SEED;
+}
+function save(data) { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+
+let currentFilter = 'all';
+let allApts = load();
+
+function statusBadge(s) {
+  const map = { confirmed:'badge-green', pending:'badge-gold', completed:'badge-blue', cancelled:'badge-red' };
+  return `<span class="badge ${map[s]||'badge-muted'}">${s.charAt(0).toUpperCase()+s.slice(1)}</span>`;
+}
+
+function typeIcon(t) {
+  return t === 'video' ? '📹 Video' : t === 'home' ? '🏠 Home' : '🏥 Clinic';
+}
+
+function render() {
+  const tbody = document.getElementById('apt-tbody');
+  const data  = currentFilter === 'all' ? allApts : allApts.filter(a => a.status === currentFilter);
+  if (!data.length) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><span class="empty-icon">📅</span><h3>No appointments found</h3><p>Book your first appointment to get started.</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = data.map(a => `
+    <tr>
+      <td><strong>${a.doctor}</strong></td>
+      <td style="color:var(--muted)">${a.specialty}</td>
+      <td>${a.date} · ${a.time}</td>
+      <td>${typeIcon(a.type)}</td>
+      <td>${statusBadge(a.status)}</td>
+      <td style="display:flex;gap:8px;padding-top:18px;">
+        ${a.status === 'pending' || a.status === 'confirmed'
+          ? `<button class="btn btn-outline btn-sm" onclick="cancelApt('${a.id}')">Cancel</button>`
+          : ''}
+        <button class="btn btn-danger btn-sm" onclick="deleteApt('${a.id}')">Delete</button>
+      </td>
+    </tr>`).join('');
+}
+
+window.bookAppointment = () => {
+  const doctor    = document.getElementById('apt-doctor').value.trim();
+  const specialty = document.getElementById('apt-specialty').value;
+  const date      = document.getElementById('apt-date').value;
+  const time      = document.getElementById('apt-time').value;
+  const type      = document.getElementById('apt-type').value;
+  const notes     = document.getElementById('apt-notes').value;
+  if (!doctor || !date || !time) { toast('Please fill in all required fields.', 'error'); return; }
+
+  const newApt = { id: Date.now().toString(), doctor, specialty, date, time, type, status:'pending', notes };
+  allApts.unshift(newApt);
+  save(allApts);
+  // Firebase: await addItem('appointments', { ...newApt, uid: DEMO.uid });
+  render();
+  closeModal('apt-modal');
+  toast('Appointment booked successfully!');
+  ['apt-doctor','apt-date','apt-time','apt-notes'].forEach(id => document.getElementById(id).value = '');
+};
+
+window.cancelApt = (id) => {
+  allApts = allApts.map(a => a.id === id ? { ...a, status:'cancelled' } : a);
+  save(allApts);
+  render();
+  toast('Appointment cancelled.');
+};
+
+window.deleteApt = (id) => {
+  allApts = allApts.filter(a => a.id !== id);
+  save(allApts);
+  render();
+  toast('Appointment deleted.');
+};
+
+document.querySelectorAll('.filter-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-tab').forEach(b => { b.classList.remove('active','btn-primary'); b.classList.add('btn-outline'); });
+    btn.classList.add('active','btn-primary'); btn.classList.remove('btn-outline');
+    currentFilter = btn.dataset.filter;
+    render();
+  });
+});
+
+// Set default date to today
+document.getElementById('apt-date').valueAsDate = new Date();
+render();
+</script>
+</body>
+</html>

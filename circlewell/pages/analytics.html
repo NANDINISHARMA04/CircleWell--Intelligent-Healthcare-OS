@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analytics — CircleWell</title>
+<link rel="stylesheet" href="../css/style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius2);padding:28px;}
+.chart-title{font-family:'Fraunces',serif;font-size:18px;font-weight:600;margin-bottom:20px;}
+.metric-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:28px;}
+.metric-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;}
+.metric-box .val{font-family:'Fraunces',serif;font-size:28px;font-weight:600;}
+.metric-box .lbl{font-size:12px;color:var(--muted);margin-top:4px;}
+.metric-box .status{font-size:12px;margin-top:6px;}
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px;}
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div id="sidebar-mount"></div>
+  <main class="main">
+    <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;">
+      <div>
+        <h1>Health Analytics</h1>
+        <p>Track your vitals and health trends over time.</p>
+      </div>
+      <select class="form-select" id="period" style="width:140px;" onchange="reloadCharts()">
+        <option value="7">Last 7 days</option>
+        <option value="30" selected>Last 30 days</option>
+        <option value="90">Last 3 months</option>
+        <option value="365">Last year</option>
+      </select>
+    </div>
+
+    <!-- Key vitals -->
+    <div class="metric-row">
+      <div class="metric-box">
+        <div class="val" id="bp-val">120/80</div>
+        <div class="lbl">Blood Pressure</div>
+        <div class="status text-sage">● Normal</div>
+      </div>
+      <div class="metric-box">
+        <div class="val" id="hr-val">72</div>
+        <div class="lbl">Heart Rate (bpm)</div>
+        <div class="status text-sage">● Normal</div>
+      </div>
+      <div class="metric-box">
+        <div class="val" id="glucose-val">95</div>
+        <div class="lbl">Blood Glucose (mg/dL)</div>
+        <div class="status text-sage">● Normal</div>
+      </div>
+      <div class="metric-box">
+        <div class="val" id="weight-val">72</div>
+        <div class="lbl">Weight (kg)</div>
+        <div class="status text-gold">↓ 0.5 this week</div>
+      </div>
+      <div class="metric-box">
+        <div class="val" id="spo2-val">98%</div>
+        <div class="lbl">SpO2</div>
+        <div class="status text-sage">● Healthy</div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-title">Blood Pressure Trend</div>
+        <canvas id="bp-chart"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Heart Rate</div>
+        <canvas id="hr-chart"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Blood Glucose</div>
+        <canvas id="glucose-chart"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Weight (kg)</div>
+        <canvas id="weight-chart"></canvas>
+      </div>
+    </div>
+
+    <!-- Mood history -->
+    <div class="chart-card" style="margin-bottom:28px;">
+      <div class="chart-title">Mood History (This Week)</div>
+      <canvas id="mood-chart" style="max-height:180px;"></canvas>
+    </div>
+
+    <!-- Log vitals -->
+    <div class="card">
+      <div class="section-header"><div class="section-title">Log Today's Vitals</div></div>
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">Systolic BP (mmHg)</label><input class="form-input" id="log-sys" type="number" placeholder="120"></div>
+        <div class="form-group"><label class="form-label">Diastolic BP (mmHg)</label><input class="form-input" id="log-dia" type="number" placeholder="80"></div>
+        <div class="form-group"><label class="form-label">Heart Rate (bpm)</label><input class="form-input" id="log-hr" type="number" placeholder="72"></div>
+        <div class="form-group"><label class="form-label">Blood Glucose (mg/dL)</label><input class="form-input" id="log-glucose" type="number" placeholder="95"></div>
+        <div class="form-group"><label class="form-label">Weight (kg)</label><input class="form-input" id="log-weight" type="number" placeholder="72"></div>
+        <div class="form-group"><label class="form-label">SpO2 (%)</label><input class="form-input" id="log-spo2" type="number" placeholder="98"></div>
+      </div>
+      <button class="btn btn-primary" onclick="logVitals()">Save Vitals</button>
+    </div>
+  </main>
+</div>
+
+<script type="module">
+import { buildSidebar, DEMO, toast } from '../js/shared.js';
+document.getElementById('sidebar-mount').outerHTML = buildSidebar('analytics', DEMO);
+window.handleLogout = () => { sessionStorage.clear(); window.location.href = '../index.html'; };
+
+const CHART_DEFAULTS = {
+  responsive: true,
+  plugins: { legend: { display: false } },
+  scales: {
+    x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#7b8599', font: { family: 'DM Sans', size: 11 } } },
+    y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#7b8599', font: { family: 'DM Sans', size: 11 } } }
+  }
+};
+
+function makeLabels(n) {
+  const labels = [];
+  for (let i = n-1; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    labels.push(d.toLocaleDateString('en-IN', { day:'numeric', month:'short' }));
+  }
+  return labels;
+}
+
+function randArr(n, base, range) {
+  return Array.from({ length: n }, () => base + Math.round((Math.random() - 0.5) * range));
+}
+
+let charts = {};
+
+window.reloadCharts = () => {
+  const n = parseInt(document.getElementById('period').value);
+  const labels = makeLabels(n);
+
+  Object.values(charts).forEach(c => c.destroy());
+
+  charts.bp = new Chart(document.getElementById('bp-chart').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label:'Systolic',  data: randArr(n, 122, 18), borderColor:'#4ade80', backgroundColor:'rgba(74,222,128,0.08)', tension:0.4, borderWidth:2 },
+        { label:'Diastolic', data: randArr(n, 80, 12),  borderColor:'#d4a847', backgroundColor:'rgba(212,168,71,0.08)',  tension:0.4, borderWidth:2 }
+      ]
+    },
+    options: { ...CHART_DEFAULTS, plugins: { legend: { display: true, labels: { color:'#7b8599', font:{ family:'DM Sans', size:11 } } } } }
+  });
+
+  charts.hr = new Chart(document.getElementById('hr-chart').getContext('2d'), {
+    type: 'line',
+    data: { labels, datasets: [{ data: randArr(n, 72, 16), borderColor:'#f87171', backgroundColor:'rgba(248,113,113,0.08)', tension:0.4, borderWidth:2, fill:true }] },
+    options: CHART_DEFAULTS
+  });
+
+  charts.glucose = new Chart(document.getElementById('glucose-chart').getContext('2d'), {
+    type: 'bar',
+    data: { labels, datasets: [{ data: randArr(n, 95, 20), backgroundColor:'rgba(74,222,128,0.3)', borderColor:'#4ade80', borderWidth:1, borderRadius:4 }] },
+    options: CHART_DEFAULTS
+  });
+
+  charts.weight = new Chart(document.getElementById('weight-chart').getContext('2d'), {
+    type: 'line',
+    data: { labels, datasets: [{ data: randArr(n, 72, 3).map((v,i,a) => i===0?v:Math.max(68,Math.min(76,a[i-1]+(Math.random()-0.51)))), borderColor:'#a78bfa', backgroundColor:'rgba(167,139,250,0.08)', tension:0.4, borderWidth:2, fill:true }] },
+    options: CHART_DEFAULTS
+  });
+
+  charts.mood = new Chart(document.getElementById('mood-chart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+      datasets: [{ data:[4,3,5,4,4,5,3], backgroundColor:'rgba(74,222,128,0.4)', borderColor:'#4ade80', borderWidth:1, borderRadius:6 }]
+    },
+    options: {
+      ...CHART_DEFAULTS,
+      scales: { ...CHART_DEFAULTS.scales, y: { ...CHART_DEFAULTS.scales.y, min:0, max:5, ticks:{ ...CHART_DEFAULTS.scales.y.ticks, callback: v => ['','😕','😐','😊','😄','💪'][v] } } }
+    }
+  });
+};
+
+window.logVitals = () => {
+  const sys    = document.getElementById('log-sys').value;
+  const dia    = document.getElementById('log-dia').value;
+  const hr     = document.getElementById('log-hr').value;
+  const glucose= document.getElementById('log-glucose').value;
+  const weight = document.getElementById('log-weight').value;
+  const spo2   = document.getElementById('log-spo2').value;
+  if (!sys && !hr && !glucose) { toast('Please enter at least one vital.','error'); return; }
+  const log = { date: new Date().toISOString(), sys, dia, hr, glucose, weight, spo2 };
+  const logs = JSON.parse(localStorage.getItem('cw_vitals') || '[]');
+  logs.unshift(log);
+  localStorage.setItem('cw_vitals', JSON.stringify(logs));
+  if (sys) document.getElementById('bp-val').textContent = `${sys}/${dia||'—'}`;
+  if (hr)     document.getElementById('hr-val').textContent = hr;
+  if (glucose)document.getElementById('glucose-val').textContent = glucose;
+  if (weight) document.getElementById('weight-val').textContent = weight;
+  if (spo2)   document.getElementById('spo2-val').textContent = spo2 + '%';
+  // Firebase: await addItem('vitals', { ...log, uid: DEMO.uid });
+  toast('Vitals logged successfully!');
+  reloadCharts();
+};
+
+reloadCharts();
+</script>
+</body>
+</html>

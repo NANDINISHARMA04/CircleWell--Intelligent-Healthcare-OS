@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CircleWell — Sign In</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0a0f1e;--navy2:#111827;--navy3:#1c2538;--navy4:#243047;
+  --sage:#4ade80;--sage2:#86efac;--gold:#d4a847;--red:#f87171;
+  --text:#e8eaf0;--muted:#7b8599;--border:rgba(255,255,255,0.07);
+}
+body{background:var(--navy);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;}
+
+/* Split layout */
+.split{display:grid;grid-template-columns:1fr 1fr;min-height:100vh;width:100%;}
+
+/* Left — branding */
+.brand-panel{
+  background:linear-gradient(145deg,#0d1f0f 0%,#0a0f1e 60%,#111827 100%);
+  padding:60px;display:flex;flex-direction:column;justify-content:space-between;
+  position:relative;overflow:hidden;
+}
+.brand-panel::before{
+  content:'';position:absolute;top:-80px;right:-80px;
+  width:400px;height:400px;border-radius:50%;
+  background:radial-gradient(circle,rgba(74,222,128,0.12) 0%,transparent 70%);
+}
+.brand-panel::after{
+  content:'';position:absolute;bottom:-100px;left:-60px;
+  width:300px;height:300px;border-radius:50%;
+  background:radial-gradient(circle,rgba(212,168,71,0.08) 0%,transparent 70%);
+}
+.brand-logo{font-family:'Fraunces',serif;font-size:28px;font-weight:700;color:var(--sage);}
+.brand-tagline{font-size:12px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:4px;}
+
+.brand-hero{position:relative;z-index:1;}
+.brand-hero h1{font-family:'Fraunces',serif;font-size:48px;font-weight:600;line-height:1.15;margin-bottom:20px;letter-spacing:-1px;}
+.brand-hero h1 em{font-style:italic;color:var(--sage);}
+.brand-hero p{font-size:16px;color:var(--muted);line-height:1.7;max-width:380px;}
+
+.features-list{list-style:none;display:flex;flex-direction:column;gap:14px;}
+.features-list li{display:flex;align-items:center;gap:12px;font-size:14px;color:var(--muted);}
+.features-list li .dot{width:8px;height:8px;background:var(--sage);border-radius:50%;flex-shrink:0;}
+
+/* Right — auth form */
+.auth-panel{
+  background:var(--navy2);display:flex;align-items:center;justify-content:center;
+  padding:60px 80px;
+}
+.auth-box{width:100%;max-width:420px;}
+.auth-tabs{display:flex;gap:0;background:var(--navy3);border-radius:14px;padding:4px;margin-bottom:36px;}
+.auth-tab{
+  flex:1;padding:10px;border:none;background:transparent;
+  color:var(--muted);font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;
+  border-radius:10px;cursor:pointer;transition:all 0.2s;
+}
+.auth-tab.active{background:var(--navy4);color:var(--text);}
+
+.auth-form{display:none;}
+.auth-form.active{display:block;}
+
+.auth-title{font-family:'Fraunces',serif;font-size:26px;font-weight:600;margin-bottom:6px;}
+.auth-sub{color:var(--muted);font-size:14px;margin-bottom:28px;}
+
+.form-group{margin-bottom:18px;}
+.form-label{display:block;font-size:13px;color:var(--muted);margin-bottom:8px;font-weight:500;}
+.form-input{
+  width:100%;background:var(--navy3);border:1px solid var(--border);
+  border-radius:12px;padding:13px 16px;color:var(--text);
+  font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color 0.2s;
+}
+.form-input:focus{border-color:var(--sage);}
+
+.btn-auth{
+  width:100%;padding:14px;background:var(--sage);color:var(--navy);
+  border:none;border-radius:12px;font-size:15px;font-weight:600;
+  font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.2s;margin-top:8px;
+}
+.btn-auth:hover{background:var(--sage2);transform:translateY(-1px);}
+
+.demo-btn{
+  width:100%;padding:12px;background:transparent;color:var(--muted);
+  border:1px solid var(--border);border-radius:12px;font-size:14px;font-weight:500;
+  font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.2s;margin-top:12px;
+}
+.demo-btn:hover{background:rgba(255,255,255,0.04);color:var(--text);}
+
+.error-msg{color:var(--red);font-size:13px;margin-top:10px;display:none;}
+
+@media(max-width:800px){.split{grid-template-columns:1fr;}.brand-panel{display:none;}.auth-panel{padding:40px 24px;}}
+</style>
+</head>
+<body>
+<div class="split">
+  <!-- Brand panel -->
+  <div class="brand-panel">
+    <div>
+      <div class="brand-logo">CircleWell</div>
+      <div class="brand-tagline">Intelligent Healthcare OS</div>
+    </div>
+    <div class="brand-hero">
+      <h1>Your health,<br><em>intelligently</em><br>managed.</h1>
+      <p>A premium healthcare ecosystem bringing together doctors, records, analytics and AI — in one secure platform.</p>
+    </div>
+    <ul class="features-list">
+      <li><span class="dot"></span> End-to-end encrypted medical records</li>
+      <li><span class="dot"></span> AI-powered health insights</li>
+      <li><span class="dot"></span> Instant emergency access</li>
+      <li><span class="dot"></span> Family health management</li>
+    </ul>
+  </div>
+
+  <!-- Auth panel -->
+  <div class="auth-panel">
+    <div class="auth-box">
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchTab('login')">Sign In</button>
+        <button class="auth-tab" onclick="switchTab('signup')">Create Account</button>
+      </div>
+
+      <!-- Login -->
+      <div class="auth-form active" id="login-form">
+        <h2 class="auth-title">Welcome back</h2>
+        <p class="auth-sub">Enter your credentials to access your dashboard.</p>
+        <div class="form-group">
+          <label class="form-label">Email address</label>
+          <input type="email" id="login-email" class="form-input" placeholder="you@example.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" id="login-pw" class="form-input" placeholder="••••••••">
+        </div>
+        <p class="error-msg" id="login-error"></p>
+        <button class="btn-auth" onclick="handleLogin()">Sign In</button>
+        <button class="demo-btn" onclick="enterDemo()">Continue with Demo Account</button>
+      </div>
+
+      <!-- Signup -->
+      <div class="auth-form" id="signup-form">
+        <h2 class="auth-title">Create account</h2>
+        <p class="auth-sub">Start your healthcare journey with CircleWell.</p>
+        <div class="form-group">
+          <label class="form-label">Full name</label>
+          <input type="text" id="signup-name" class="form-input" placeholder="Arjun Mehta">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email address</label>
+          <input type="email" id="signup-email" class="form-input" placeholder="you@example.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" id="signup-pw" class="form-input" placeholder="Min 8 characters">
+        </div>
+        <p class="error-msg" id="signup-error"></p>
+        <button class="btn-auth" onclick="handleSignup()">Create Account</button>
+        <button class="demo-btn" onclick="enterDemo()">Continue with Demo Account</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  // Firebase auth (comment out if not configured yet)
+  // import { login, register } from './js/firebase.js';
+
+  window.switchTab = (tab) => {
+    document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0 && tab==='login') || (i===1 && tab==='signup')));
+    document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+    document.getElementById(tab + '-form').classList.add('active');
+  };
+
+  window.handleLogin = async () => {
+    const email = document.getElementById('login-email').value;
+    const pw    = document.getElementById('login-pw').value;
+    const err   = document.getElementById('login-error');
+    if (!email || !pw) { err.textContent = 'Please fill in all fields.'; err.style.display = 'block'; return; }
+    try {
+      // await login(email, pw);  // Uncomment when Firebase is configured
+      // For demo: just redirect
+      sessionStorage.setItem('cw_user', JSON.stringify({ email, name: email.split('@')[0] }));
+      window.location.href = 'pages/dashboard.html';
+    } catch(e) {
+      err.textContent = e.message || 'Login failed.';
+      err.style.display = 'block';
+    }
+  };
+
+  window.handleSignup = async () => {
+    const name  = document.getElementById('signup-name').value;
+    const email = document.getElementById('signup-email').value;
+    const pw    = document.getElementById('signup-pw').value;
+    const err   = document.getElementById('signup-error');
+    if (!name || !email || !pw) { err.textContent = 'Please fill in all fields.'; err.style.display = 'block'; return; }
+    if (pw.length < 8) { err.textContent = 'Password must be at least 8 characters.'; err.style.display = 'block'; return; }
+    try {
+      // const cred = await register(email, pw);  // Uncomment when Firebase configured
+      // await setUserProfile(cred.user.uid, { name, email, healthId: 'CW-' + Math.random().toString().slice(2,10) });
+      sessionStorage.setItem('cw_user', JSON.stringify({ email, name }));
+      window.location.href = 'pages/dashboard.html';
+    } catch(e) {
+      err.textContent = e.message || 'Registration failed.';
+      err.style.display = 'block';
+    }
+  };
+
+  window.enterDemo = () => {
+    sessionStorage.setItem('cw_demo', '1');
+    window.location.href = 'pages/dashboard.html';
+  };
+</script>
+</body>
+</html>

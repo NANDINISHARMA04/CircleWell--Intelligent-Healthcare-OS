@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Insurance — CircleWell</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.policy-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius2);padding:28px;margin-bottom:16px;position:relative;overflow:hidden;}
+.policy-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:var(--sage);}
+.policy-name{font-family:'Fraunces',serif;font-size:20px;font-weight:600;margin-bottom:4px;}
+.policy-meta{display:flex;gap:20px;flex-wrap:wrap;margin:12px 0;font-size:13px;color:var(--muted);}
+.policy-meta span strong{color:var(--text);}
+.progress-bar{height:6px;background:var(--navy4);border-radius:3px;overflow:hidden;margin-top:6px;}
+.progress-fill{height:100%;background:var(--sage);border-radius:3px;transition:width 0.6s;}
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div id="sidebar-mount"></div>
+  <main class="main">
+    <div class="page-header">
+      <h1>Insurance & Claims</h1>
+      <p>Manage your health policies and file claims.</p>
+    </div>
+
+    <!-- Summary stats -->
+    <div class="stat-grid" style="margin-bottom:32px;">
+      <div class="stat-card"><span class="icon">🛡</span><div class="value">2</div><div class="label">Active Policies</div></div>
+      <div class="stat-card"><span class="icon">📋</span><div class="value">₹8L</div><div class="label">Total Coverage</div></div>
+      <div class="stat-card"><span class="icon">✅</span><div class="value">₹1.2L</div><div class="label">Claimed (FY)</div></div>
+      <div class="stat-card"><span class="icon">⏳</span><div class="value">1</div><div class="label">Pending Claims</div></div>
+    </div>
+
+    <!-- Policies -->
+    <div class="section-header">
+      <div class="section-title">My Policies</div>
+      <button class="btn btn-primary btn-sm" onclick="openModal('policy-modal')">+ Add Policy</button>
+    </div>
+    <div id="policies-list"></div>
+
+    <!-- Claims -->
+    <div class="section-header" style="margin-top:32px;">
+      <div class="section-title">Recent Claims</div>
+      <button class="btn btn-outline btn-sm" onclick="openModal('claim-modal')">File a Claim</button>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <table>
+        <thead><tr><th>Claim ID</th><th>Hospital</th><th>Amount</th><th>Date</th><th>Status</th></tr></thead>
+        <tbody id="claims-tbody"></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<!-- Add Policy Modal -->
+<div class="modal-overlay" id="policy-modal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Add Insurance Policy</div><button class="modal-close">✕</button></div>
+    <div class="form-group"><label class="form-label">Policy Name</label><input class="form-input" id="pol-name" placeholder="Star Health Comprehensive"></div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Policy Number</label><input class="form-input" id="pol-num" placeholder="SH-2024-XXXXX"></div>
+      <div class="form-group"><label class="form-label">Provider</label><input class="form-input" id="pol-provider" placeholder="Star Health Insurance"></div>
+      <div class="form-group"><label class="form-label">Sum Insured (₹)</label><input class="form-input" type="number" id="pol-sum" placeholder="500000"></div>
+      <div class="form-group"><label class="form-label">Premium (₹/yr)</label><input class="form-input" type="number" id="pol-premium" placeholder="12000"></div>
+      <div class="form-group"><label class="form-label">Start Date</label><input class="form-input" type="date" id="pol-start"></div>
+      <div class="form-group"><label class="form-label">End Date</label><input class="form-input" type="date" id="pol-end"></div>
+    </div>
+    <div style="display:flex;gap:12px;justify-content:flex-end;">
+      <button class="btn btn-outline" onclick="closeModal('policy-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addPolicy()">Save Policy</button>
+    </div>
+  </div>
+</div>
+
+<!-- File Claim Modal -->
+<div class="modal-overlay" id="claim-modal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">File a Claim</div><button class="modal-close">✕</button></div>
+    <div class="form-group"><label class="form-label">Hospital Name</label><input class="form-input" id="cl-hospital" placeholder="Apollo Hospital"></div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Claim Amount (₹)</label><input class="form-input" type="number" id="cl-amount" placeholder="25000"></div>
+      <div class="form-group"><label class="form-label">Date of Admission</label><input class="form-input" type="date" id="cl-date"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Reason</label><textarea class="form-textarea" id="cl-reason" placeholder="Describe the treatment..."></textarea></div>
+    <div style="display:flex;gap:12px;justify-content:flex-end;">
+      <button class="btn btn-outline" onclick="closeModal('claim-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="fileClaim()">Submit Claim</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { buildSidebar, DEMO, toast, openModal, closeModal, setupModals } from '../js/shared.js';
+window.openModal = openModal; window.closeModal = closeModal;
+document.getElementById('sidebar-mount').outerHTML = buildSidebar('insurance', DEMO);
+setupModals();
+window.handleLogout = () => { sessionStorage.clear(); window.location.href = '../index.html'; };
+
+const SEED_POLICIES = [
+  { id:'1', name:'Star Health Comprehensive', num:'SH-2024-78421', provider:'Star Health Insurance', sum:500000, premium:12000, start:'2024-04-01', end:'2025-03-31', claimed:75000 },
+  { id:'2', name:'LIC Jeevan Arogya',          num:'LIC-JA-56789',  provider:'LIC India',             sum:300000, premium:8500,  start:'2023-06-01', end:'2026-05-31', claimed:45000 },
+];
+
+const SEED_CLAIMS = [
+  { id:'CLM-001', hospital:'Apollo Hospital', amount:75000, date:'2025-03-15', status:'approved' },
+  { id:'CLM-002', hospital:'Fortis Hospital', amount:38000, date:'2025-04-02', status:'pending' },
+  { id:'CLM-003', hospital:'Max Hospital',    amount:22000, date:'2024-11-10', status:'approved' },
+];
+
+let policies = JSON.parse(localStorage.getItem('cw_policies') || 'null') || SEED_POLICIES;
+let claims   = JSON.parse(localStorage.getItem('cw_claims')   || 'null') || SEED_CLAIMS;
+
+function fmt(n) { return '₹' + Number(n).toLocaleString('en-IN'); }
+
+function renderPolicies() {
+  document.getElementById('policies-list').innerHTML = policies.map(p => {
+    const pct = Math.min(100, Math.round((p.claimed / p.sum) * 100));
+    return `
+    <div class="policy-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <div class="policy-name">${p.name}</div>
+          <div style="font-size:13px;color:var(--muted);">${p.provider} · ${p.num}</div>
+        </div>
+        <span class="badge badge-green">Active</span>
+      </div>
+      <div class="policy-meta">
+        <span>Coverage: <strong>${fmt(p.sum)}</strong></span>
+        <span>Premium: <strong>${fmt(p.premium)}/yr</strong></span>
+        <span>Valid till: <strong>${p.end}</strong></span>
+      </div>
+      <div style="font-size:12px;color:var(--muted);">Claimed: ${fmt(p.claimed)} of ${fmt(p.sum)} (${pct}%)</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div style="display:flex;gap:8px;margin-top:16px;">
+        <button class="btn btn-outline btn-sm" onclick="openModal('claim-modal')">File Claim</button>
+        <button class="btn btn-danger btn-sm" onclick="deletePolicy('${p.id}')">Remove</button>
+      </div>
+    </div>`}).join('') || `<div class="empty-state"><span class="empty-icon">🛡</span><h3>No policies</h3><p>Add your insurance policy to track coverage.</p></div>`;
+}
+
+function renderClaims() {
+  const map = { approved:'badge-green', pending:'badge-gold', rejected:'badge-red' };
+  document.getElementById('claims-tbody').innerHTML = claims.map(c => `
+    <tr>
+      <td><strong>${c.id}</strong></td>
+      <td>${c.hospital}</td>
+      <td>${fmt(c.amount)}</td>
+      <td>${c.date}</td>
+      <td><span class="badge ${map[c.status]}">${c.status.charAt(0).toUpperCase()+c.status.slice(1)}</span></td>
+    </tr>`).join('');
+}
+
+window.addPolicy = () => {
+  const name     = document.getElementById('pol-name').value.trim();
+  const num      = document.getElementById('pol-num').value.trim();
+  const provider = document.getElementById('pol-provider').value.trim();
+  const sum      = document.getElementById('pol-sum').value;
+  const premium  = document.getElementById('pol-premium').value;
+  const start    = document.getElementById('pol-start').value;
+  const end      = document.getElementById('pol-end').value;
+  if (!name || !sum) { toast('Please fill required fields.','error'); return; }
+  policies.unshift({ id: Date.now().toString(), name, num, provider, sum: Number(sum), premium: Number(premium), start, end, claimed: 0 });
+  localStorage.setItem('cw_policies', JSON.stringify(policies));
+  renderPolicies();
+  closeModal('policy-modal');
+  toast('Policy added!');
+};
+
+window.fileClaim = () => {
+  const hospital = document.getElementById('cl-hospital').value.trim();
+  const amount   = document.getElementById('cl-amount').value;
+  const date     = document.getElementById('cl-date').value;
+  const reason   = document.getElementById('cl-reason').value;
+  if (!hospital || !amount || !date) { toast('Please fill required fields.','error'); return; }
+  const id = 'CLM-' + Date.now().toString().slice(-4);
+  claims.unshift({ id, hospital, amount: Number(amount), date, reason, status:'pending' });
+  localStorage.setItem('cw_claims', JSON.stringify(claims));
+  renderClaims();
+  closeModal('claim-modal');
+  toast('Claim submitted successfully!');
+};
+
+window.deletePolicy = (id) => {
+  policies = policies.filter(p => p.id !== id);
+  localStorage.setItem('cw_policies', JSON.stringify(policies));
+  renderPolicies();
+  toast('Policy removed.');
+};
+
+document.getElementById('cl-date').valueAsDate = new Date();
+document.getElementById('pol-start').valueAsDate = new Date();
+renderPolicies();
+renderClaims();
+</script>
+</body>
+</html>
